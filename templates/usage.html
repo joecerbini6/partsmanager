@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Record Part Usage</h2>
+  <form method="post">
+    <div class="mb-3">
+      <label for="part_number" class="form-label">Part Number</label>
+      <select class="form-select" id="part_number" name="part_number" required>
+        <option value="">Select Part...</option>
+        {% for pn, item in inventory.items() %}
+          <option value="{{ pn }}">{{ pn }} - {{ item.name }} (Stock: {{ item.quantity }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="used" class="form-label">Quantity Used Today</label>
+      <input type="number" class="form-control" id="used" name="used" min="1" required>
+    </div>
+    <button type="submit" class="btn btn-warning">Record Usage</button>
+  </form>
+{% endblock %}

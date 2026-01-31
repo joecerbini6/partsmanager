@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1 class="mb-4">Dashboard</h1>
+  <p>Welcome to Parts Manager. Use the sidebar to navigate.</p>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card text-white bg-primary mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Total Parts</h5>
+          <p class="card-text display-4">{{ inventory|length }}</p>
+        </div>
+      </div>
+    </div>
+    <!-- Add more cards later: low stock count, etc. -->
+  </div>
+{% endblock %}

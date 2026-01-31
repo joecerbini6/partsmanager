@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block content %}
+
+  <h2 class="mb-4">Reorder Suggestions</h2>
+
+  <!-- Debug area – shows what Flask sent and what was saved -->
+  <div id="debugOutput" class="alert alert-info mb-4" role="alert" style="display:none;">
+    <strong>Debug Info:</strong><br>
+    <span id="debugText"></span>
+  </div>
+
+  {% if parts %}
+    <div class="table-responsive">
+      <table class="table table-warning table-striped">
+        <thead>
+          <tr>
+            <th>Part #</th>
+            <th>Name</th>
+            <th>Current Qty</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pn, item in parts.items() %}
+          <tr>
+            <td>{{ pn }}</td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>
+              {% if item.supplier_url %}
+                <a href="{{ item.supplier_url }}" target="_blank" class="btn btn-sm btn-danger">Reorder</a>
+              {% else %}
+                <span class="text-muted">No supplier link</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Big button -->
+    <div class="mt-4 text-center">
+      <button onclick="queueAndOpenGenService()" class="btn btn-lg btn-success">
+        <i class="bi bi-cart-check me-2"></i> Add All Suggested Parts to GenService Cart
+      </button>
+    </div>
+
+  {% else %}
+    <div class="alert alert-success">
+      <i class="bi bi-check-circle-fill me-2"></i> No low-stock items right now. Good job!
+    </div>
+  {% endif %}
+
+  <!-- JavaScript – saves to sessionStorage and opens GenService -->
+  <script>
+  function queueAndOpenGenService() {
+    const debugDiv = document.getElementById('debugOutput');
+    const debugText = document.getElementById('debugText');
+    debugDiv.style.display = 'block';
+    debugText.innerHTML = 'Button clicked... collecting parts<br>';
+
+    console.log('Button clicked – starting queue process');
+
+    // Collect parts from Jinja template
+    const parts = [
+      {% for pn, item in parts.items() %}
+      {
+        pn: "{{ pn }}",
+        name: "{{ item.name | e }}",
+        qty: {{ item.suggested_qty or 10 }}
+      },
+      {% endfor %}
+    ];
+
+    console.log('Collected parts from template:', parts);
+    debugText.innerHTML += 'Collected ' + parts.length + ' parts: ' + JSON.stringify(parts) + '<br>';
+
+    if (parts.length === 0) {
+      console.log('No parts to queue');
+      debugText.innerHTML += 'No parts to queue<br>';
+      alert("No parts to order right now.");
+      return;
+    }
+
+    // Save to sessionStorage
+    sessionStorage.setItem('pendingGenServiceParts', JSON.stringify(parts));
+    console.log('Saved to sessionStorage. Raw value:', sessionStorage.getItem('pendingGenServiceParts'));
+    debugText.innerHTML += 'Saved to sessionStorage. Raw value: ' + sessionStorage.getItem('pendingGenServiceParts') + '<br>';
+
+    // Open GenService in new tab
+    window.open('https://service.generac.com/', '_blank');
+    debugText.innerHTML += 'Opened GenService tab<br>';
+    alert("Parts queued! Switch to the new GenService tab, log in if needed — the script will try to add them automatically.");
+  }
+  </script>
+
+{% endblock %}

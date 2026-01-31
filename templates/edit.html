@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+
+  <h2>Edit Part: {{ part.name }} ({{ pn }})</h2>
+
+  <form method="post" class="mt-4">
+    <div class="mb-3">
+      <label for="name" class="form-label">Name</label>
+      <input type="text" class="form-control" id="name" name="name" value="{{ part.name }}" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="quantity" class="form-label">Quantity</label>
+      <input type="number" class="form-control" id="quantity" name="quantity" value="{{ part.quantity }}" min="0" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="price" class="form-label">Price</label>
+      <input type="number" step="0.01" class="form-control" id="price" name="price" value="{{ part.price }}" min="0" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="description" class="form-label">Description</label>
+      <textarea class="form-control" id="description" name="description" rows="3">{{ part.description }}</textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="tag" class="form-label">Tag</label>
+      <select class="form-select" id="tag" name="tag">
+        <option value="">None</option>
+        <option value="generator" {% if part.tag == 'generator' %}selected{% endif %}>Generator</option>
+        <option value="transfer switch" {% if part.tag == 'transfer switch' %}selected{% endif %}>Transfer Switch</option>
+        <option value="both" {% if part.tag == 'both' %}selected{% endif %}>Both</option>
+        <option value="other" {% if part.tag == 'other' %}selected{% endif %}>Other</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="supplier_url" class="form-label">Supplier URL (optional)</label>
+      <input type="url" class="form-control" id="supplier_url" name="supplier_url" value="{{ part.supplier_url }}">
+    </div>
+
+    <button type="submit" class="btn btn-primary me-2">Save Changes</button>
+    <a href="{{ url_for('view_parts') }}" class="btn btn-secondary">Cancel</a>
+  </form>
+
+{% endblock %}
