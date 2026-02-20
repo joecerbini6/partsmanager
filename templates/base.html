@@ -25,13 +25,13 @@
       background-color: rgba(255,255,255,0.08);
     }
     .sidebar .dropdown-menu {
-      background-color: #ffffff !important;   /* white background */
+      background-color: #ffffff !important;
       border: 1px solid #ced4da;
       box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
       margin-left: 0.5rem;
     }
     .sidebar .dropdown-item {
-      color: #212529 !important;   /* black text */
+      color: #212529 !important;
       padding: 0.65rem 1.5rem;
     }
     .sidebar .dropdown-item:hover,
@@ -65,7 +65,7 @@
             </a>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="/view?category=all">All Parts in Inventory</a></li>
-              <li><a class="dropdown-item" href="/view?category=low">Low Stock Parts (below {{ LOW_STOCK }})</a></li>
+              <li><a class="dropdown-item" href="/view?category=low">Low Stock Parts (below threshold)</a></li>
               <li><a class="dropdown-item" href="/view?category=out">Out of Stock / Zero Quantity</a></li>
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item" href="/view?category=generator">Generator Parts Only</a></li>
@@ -90,6 +90,19 @@
             <a class="nav-link" href="/reorder">
               <i class="bi bi-arrow-repeat me-2"></i> Reorder Suggestions
             </a>
+          </li>
+
+          <!-- NEW: Login / Logout link -->
+          <li class="nav-item">
+            {% if current_user.is_authenticated %}
+              <a class="nav-link" href="{{ url_for('logout') }}">
+                <i class="bi bi-box-arrow-right me-2"></i> Logout ({{ current_user.username }})
+              </a>
+            {% else %}
+              <a class="nav-link" href="{{ url_for('login') }}">
+                <i class="bi bi-box-arrow-in-left me-2"></i> Login
+              </a>
+            {% endif %}
           </li>
         </ul>
       </div>

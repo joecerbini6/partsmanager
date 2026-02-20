@@ -6,8 +6,8 @@
       <label for="part_number" class="form-label">Part Number</label>
       <select class="form-select" id="part_number" name="part_number" required>
         <option value="">Select Part...</option>
-        {% for pn, item in inventory.items() %}
-          <option value="{{ pn }}">{{ pn }} - {{ item.name }} (Stock: {{ item.quantity }})</option>
+        {% for part in inventory %}
+          <option value="{{ part.pn }}">{{ part.pn }} - {{ part.name }} (Stock: {{ part.quantity }})</option>
         {% endfor %}
       </select>
     </div>

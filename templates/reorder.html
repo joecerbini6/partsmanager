@@ -3,7 +3,7 @@
 
   <h2 class="mb-4">Reorder Suggestions</h2>
 
-  <!-- Debug area – shows what Flask sent and what was saved -->
+  <!-- Debug area -->
   <div id="debugOutput" class="alert alert-info mb-4" role="alert" style="display:none;">
     <strong>Debug Info:</strong><br>
     <span id="debugText"></span>
@@ -11,12 +11,13 @@
 
   {% if parts %}
     <div class="table-responsive">
-      <table class="table table-warning table-striped">
+      <table class="table table-warning table-striped table-hover">
         <thead>
           <tr>
             <th>Part #</th>
             <th>Name</th>
             <th>Current Qty</th>
+            <th>Reorder At</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -26,6 +27,7 @@
             <td>{{ pn }}</td>
             <td>{{ item.name }}</td>
             <td>{{ item.quantity }}</td>
+            <td>{{ item.reorder_threshold }}</td>
             <td>
               {% if item.supplier_url %}
                 <a href="{{ item.supplier_url }}" target="_blank" class="btn btn-sm btn-danger">Reorder</a>
@@ -62,7 +64,6 @@
 
     console.log('Button clicked – starting queue process');
 
-    // Collect parts from Jinja template
     const parts = [
       {% for pn, item in parts.items() %}
       {
@@ -83,12 +84,10 @@
       return;
     }
 
-    // Save to sessionStorage
     sessionStorage.setItem('pendingGenServiceParts', JSON.stringify(parts));
     console.log('Saved to sessionStorage. Raw value:', sessionStorage.getItem('pendingGenServiceParts'));
     debugText.innerHTML += 'Saved to sessionStorage. Raw value: ' + sessionStorage.getItem('pendingGenServiceParts') + '<br>';
 
-    // Open GenService in new tab
     window.open('https://service.generac.com/', '_blank');
     debugText.innerHTML += 'Opened GenService tab<br>';
     alert("Parts queued! Switch to the new GenService tab, log in if needed — the script will try to add them automatically.");

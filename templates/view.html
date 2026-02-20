@@ -28,12 +28,13 @@
   <!-- Parts Table -->
   {% if parts %}
     <div class="table-responsive">
-      <table class="table table-striped table-hover">
+      <table class="table table-striped table-hover table-bordered">
         <thead class="table-dark">
           <tr>
             <th>Part #</th>
             <th>Name</th>
             <th>Qty</th>
+            <th>Reorder At</th>
             <th>Price</th>
             <th>Tag</th>
             <th>Description</th>
@@ -46,22 +47,23 @@
             <td>{{ pn }}</td>
             <td>{{ item.name }}</td>
             <td>{{ item.quantity }}</td>
+            <td>{{ item.reorder_threshold }}</td>
             <td>${{ "%.2f"|format(item.price) }}</td>
             <td>{{ item.tag|capitalize or 'Other' }}</td>
             <td>{{ item.description }}</td>
             <td class="table-actions">
-  <a href="{{ url_for('edit_part', pn=pn) }}" 
-     class="btn btn-sm btn-primary me-2">
-    <i class="bi bi-pencil"></i> Edit
-  </a>
-  <form action="{{ url_for('delete_part', pn=pn) }}" method="post" style="display:inline;">
-    <button type="submit" 
-            class="btn btn-sm btn-danger"
-            onclick="return confirm('Delete {{ item.name }} ({{ pn }}) permanently?');">
-      <i class="bi bi-trash"></i> Delete
-    </button>
-  </form>
-</td>
+              <a href="{{ url_for('edit_part', pn=pn) }}" 
+                 class="btn btn-sm btn-primary me-2">
+                <i class="bi bi-pencil"></i> Edit
+              </a>
+              <form action="{{ url_for('delete_part', pn=pn) }}" method="post" style="display:inline;">
+                <button type="submit" 
+                        class="btn btn-sm btn-danger"
+                        onclick="return confirm('Delete {{ item.name }} ({{ pn }}) permanently?');">
+                  <i class="bi bi-trash"></i> Delete
+                </button>
+              </form>
+            </td>
           </tr>
           {% endfor %}
         </tbody>
