@@ -274,5 +274,5 @@ def logout():
     flash("Logged out.", "info")
     return redirect(url_for('login'))  # Redirect to login after logout
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+
+    
