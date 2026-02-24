@@ -6,16 +6,18 @@
   <!-- Search & Filter Bar -->
   <div class="card mb-4">
     <div class="card-body">
-      <form method="get" action="/view" class="row g-3">
+      <form method="get" action="{{ url_for('view_parts') }}" class="row g-3">
         <div class="col-md-5">
           <input type="text" class="form-control" name="q" placeholder="Search part number, name, or description..." value="{{ request.args.get('q', '') }}">
         </div>
         <div class="col-md-4">
-          <select class="form-select" name="tag">
-            <option value="">Filter by Tag</option>
-            <option value="generator" {% if request.args.get('tag') == 'generator' %}selected{% endif %}>Generator</option>
-            <option value="transfer switch" {% if request.args.get('tag') == 'transfer switch' %}selected{% endif %}>Transfer Switch</option>
-            <option value="other" {% if request.args.get('tag') == 'other' %}selected{% endif %}>Other</option>
+          <select class="form-select" name="category">
+            <option value="all" {% if category == 'all' %}selected{% endif %}>All Categories</option>
+            <option value="low" {% if category == 'low' %}selected{% endif %}>Low Stock</option>
+            <option value="out" {% if category == 'out' %}selected{% endif %}>Out of Stock</option>
+            <option value="generator" {% if category == 'generator' %}selected{% endif %}>Generator Parts</option>
+            <option value="transfer switch" {% if category == 'transfer switch' %}selected{% endif %}>Transfer Switch Parts</option>
+            <option value="other" {% if category == 'other' %}selected{% endif %}>Other Parts</option>
           </select>
         </div>
         <div class="col-md-3">
@@ -52,14 +54,11 @@
             <td>{{ item.tag|capitalize or 'Other' }}</td>
             <td>{{ item.description }}</td>
             <td class="table-actions">
-              <a href="{{ url_for('edit_part', pn=pn) }}" 
-                 class="btn btn-sm btn-primary me-2">
+              <a href="{{ url_for('edit_part', pn=pn) }}" class="btn btn-sm btn-primary me-2">
                 <i class="bi bi-pencil"></i> Edit
               </a>
               <form action="{{ url_for('delete_part', pn=pn) }}" method="post" style="display:inline;">
-                <button type="submit" 
-                        class="btn btn-sm btn-danger"
-                        onclick="return confirm('Delete {{ item.name }} ({{ pn }}) permanently?');">
+                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete {{ item.name }} ({{ pn }}) permanently?');">
                   <i class="bi bi-trash"></i> Delete
                 </button>
               </form>
