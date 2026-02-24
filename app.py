@@ -2,13 +2,14 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from collections import defaultdict
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'fallback-secret-for-local')  # Set real secret in Render env vars
 
-# Persistent disk path on Render - this keeps all your parts/usage/thresholds forever
+# Render persistent disk path - data saves forever on your mounted disk
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////opt/render/project/src/data/inventory.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -76,10 +77,49 @@ def parts_to_dict(parts):
     } for p in parts}
 
 @app.route('/')
+@login_required
 def index():
-    if not current_user.is_authenticated:
-        return redirect(url_for('login'))
-    return render_template('index.html', title="Dashboard")
+    now = datetime.now()
+    week_start = now - timedelta(days=now.weekday())  # Monday
+    month_start = now.replace(day=1)
+
+    def usage_in_period(history, start):
+        return [entry for entry in history if datetime.fromisoformat(entry['date']) >= start]
+
+    part_week = defaultdict(int)
+    part_month = defaultdict(int)
+    user_week = defaultdict(int)
+    user_month = defaultdict(int)
+    user_all = defaultdict(int)
+
+    for pn, part in Part.query.all():
+        for entry in part.usage_history or []:
+            used = entry['quantity_used']
+            user = entry.get('user', 'Unknown')
+            date = datetime.fromisoformat(entry['date'])
+
+            user_all[user] += used
+
+            if date >= week_start:
+                part_week[part.name] += used
+                user_week[user] += used
+
+            if date >= month_start:
+                part_month[part.name] += used
+                user_month[user] += used
+
+    top_parts_week = sorted(part_week.items(), key=lambda x: x[1], reverse=True)[:5]
+    top_parts_month = sorted(part_month.items(), key=lambda x: x[1], reverse=True)[:5]
+    top_users_week = sorted(user_week.items(), key=lambda x: x[1], reverse=True)[:3]
+    top_users_month = sorted(user_month.items(), key=lambda x: x[1], reverse=True)[:3]
+    top_users_all = sorted(user_all.items(), key=lambda x: x[1], reverse=True)[:3]
+
+    return render_template('index.html', title="Dashboard",
+                           top_parts_week=top_parts_week,
+                           top_parts_month=top_parts_month,
+                           top_users_week=top_users_week,
+                           top_users_month=top_users_month,
+                           top_users_all=top_users_all)
 
 @app.route('/view')
 @login_required
@@ -90,7 +130,6 @@ def view_parts():
     title = "All Parts"
     query = Part.query
 
-    # Category filter
     if category == 'low':
         query = query.filter(Part.quantity > 0, Part.quantity < Part.reorder_threshold)
         title = "Low Stock Parts"
@@ -104,7 +143,6 @@ def view_parts():
             query = query.filter(Part.tag == category)
         title = f"{category.replace(' ', '_').capitalize()} Parts"
 
-    # Search filter (only if q exists)
     if q:
         q_lower = q.lower()
         search_filter = (

@@ -1,16 +1,126 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1 class="mb-4">Dashboard</h1>
-  <p>Welcome to Parts Manager. Use the sidebar to navigate.</p>
+  <h1 class="mb-4">Parts Dashboard</h1>
+
   <div class="row">
-    <div class="col-md-4">
-      <div class="card text-white bg-primary mb-3">
+    <!-- Most Parts Used - This Week -->
+    <div class="col-md-6 mb-4">
+      <div class="card border-primary h-100">
+        <div class="card-header bg-primary text-white">
+          <h5>Most Parts Used - This Week</h5>
+        </div>
         <div class="card-body">
-          <h5 class="card-title">Total Parts</h5>
-          <p class="card-text display-4">{{ inventory|length }}</p>
+          {% if top_parts_week %}
+            <ul class="list-group list-group-flush">
+              {% for name, qty in top_parts_week %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  {{ name }}
+                  <span class="badge bg-primary rounded-pill">{{ qty }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No usage recorded this week yet.</p>
+          {% endif %}
         </div>
       </div>
     </div>
-    <!-- Add more cards later: low stock count, etc. -->
+
+    <!-- Most Parts Used - This Month -->
+    <div class="col-md-6 mb-4">
+      <div class="card border-success h-100">
+        <div class="card-header bg-success text-white">
+          <h5>Most Parts Used - This Month</h5>
+        </div>
+        <div class="card-body">
+          {% if top_parts_month %}
+            <ul class="list-group list-group-flush">
+              {% for name, qty in top_parts_month %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  {{ name }}
+                  <span class="badge bg-success rounded-pill">{{ qty }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No usage recorded this month yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Users - This Week -->
+    <div class="col-md-4 mb-4">
+      <div class="card border-info h-100">
+        <div class="card-header bg-info text-white">
+          <h5>Top Users - This Week</h5>
+        </div>
+        <div class="card-body">
+          {% if top_users_week %}
+            <ul class="list-group list-group-flush">
+              {% for user, qty in top_users_week %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  {{ user }}
+                  <span class="badge bg-info rounded-pill">{{ qty }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No usage this week.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Users - This Month -->
+    <div class="col-md-4 mb-4">
+      <div class="card border-warning h-100">
+        <div class="card-header bg-warning text-dark">
+          <h5>Top Users - This Month</h5>
+        </div>
+        <div class="card-body">
+          {% if top_users_month %}
+            <ul class="list-group list-group-flush">
+              {% for user, qty in top_users_month %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  {{ user }}
+                  <span class="badge bg-warning rounded-pill">{{ qty }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No usage this month.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Users - All Time -->
+    <div class="col-md-4 mb-4">
+      <div class="card border-secondary h-100">
+        <div class="card-header bg-secondary text-white">
+          <h5>Top Users - All Time</h5>
+        </div>
+        <div class="card-body">
+          {% if top_users_all %}
+            <ul class="list-group list-group-flush">
+              {% for user, qty in top_users_all %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  {{ user }}
+                  <span class="badge bg-secondary rounded-pill">{{ qty }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No usage recorded yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick link to reorder -->
+  <div class="text-center mt-4">
+    <a href="{{ url_for('reorder') }}" class="btn btn-lg btn-danger">View Reorder Suggestions</a>
   </div>
 {% endblock %}
