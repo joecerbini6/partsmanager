@@ -8,7 +8,7 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'fallback-secret-for-local')  # Set real secret in Render env vars
 
-# Render persistent disk path - this keeps data forever
+# Persistent disk path on Render - this keeps all your parts/usage/thresholds forever
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////opt/render/project/src/data/inventory.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -40,13 +40,12 @@ def load_user(user_id):
 with app.app_context():
     db.create_all()
 
-    # Pre-seed users if none exist (change passwords immediately after first login!)
+    # Pre-seed users if none exist (change passwords after first login!)
     if User.query.count() == 0:
         users = [
-            User(username='joe', password=generate_password_hash('password123')),  # CHANGE THIS PASSWORD!
+            User(username='joe', password=generate_password_hash('password123')),
             User(username='mike', password=generate_password_hash('pass123')),
             User(username='tech1', password=generate_password_hash('techpass')),
-            # Add more team members here as needed
         ]
         db.session.bulk_save_objects(users)
         db.session.commit()
