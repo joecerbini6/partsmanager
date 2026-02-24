@@ -6,13 +6,15 @@ import os
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'fallback-secret-for-local')  # Use env var on Render
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///inventory.db'
+app.secret_key = os.environ.get('SECRET_KEY', 'fallback-secret-for-local')  # Set real secret in Render env vars
+
+# Render persistent disk path - this keeps data forever
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////opt/render/project/src/data/inventory.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 login_manager = LoginManager(app)
-login_manager.login_view = 'login'  # Redirects to /login if not logged in
+login_manager.login_view = 'login'
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -38,18 +40,18 @@ def load_user(user_id):
 with app.app_context():
     db.create_all()
 
-    # Pre-seed users if none exist (change passwords!)
+    # Pre-seed users if none exist (change passwords immediately after first login!)
     if User.query.count() == 0:
         users = [
-            User(username='joe', password=generate_password_hash('password123')),  # Change this!
+            User(username='joe', password=generate_password_hash('password123')),  # CHANGE THIS PASSWORD!
             User(username='mike', password=generate_password_hash('pass123')),
             User(username='tech1', password=generate_password_hash('techpass')),
-            # Add more for "all the guys" - change passwords after first login
+            # Add more team members here as needed
         ]
         db.session.bulk_save_objects(users)
         db.session.commit()
 
-    # Starter parts if empty
+    # Starter parts if inventory is empty
     if Part.query.count() == 0:
         starter = [
             Part(pn="SCR-001", name="Hex Screw", quantity=120, price=0.15,
@@ -77,16 +79,19 @@ def parts_to_dict(parts):
 @app.route('/')
 def index():
     if not current_user.is_authenticated:
-        return redirect(url_for('login'))  # NEW: Force login first
+        return redirect(url_for('login'))
     return render_template('index.html', title="Dashboard")
 
 @app.route('/view')
 @login_required
 def view_parts():
     category = request.args.get('category', 'all')
+    q = request.args.get('q', '').strip()
+
     title = "All Parts"
     query = Part.query
 
+    # Category filter
     if category == 'low':
         query = query.filter(Part.quantity > 0, Part.quantity < Part.reorder_threshold)
         title = "Low Stock Parts"
@@ -95,15 +100,26 @@ def view_parts():
         title = "Out of Stock Parts"
     elif category in ['generator', 'transfer switch', 'other']:
         if category == 'other':
-            query = query.filter((Part.tag == '') | (Part.tag == 'other'))
+            query = query.filter((Part.tag == None) | (Part.tag == '') | (Part.tag == 'other'))
         else:
             query = query.filter(Part.tag == category)
         title = f"{category.replace(' ', '_').capitalize()} Parts"
 
+    # Search filter (only if q exists)
+    if q:
+        q_lower = q.lower()
+        search_filter = (
+            Part.pn.ilike(f"%{q_lower}%") |
+            Part.name.ilike(f"%{q_lower}%") |
+            Part.description.ilike(f"%{q_lower}%")
+        )
+        query = query.filter(search_filter)
+        title = f'Search Results for "{q}"' if category == 'all' else f'{title} - Search "{q}"'
+
     parts_list = query.all()
     parts_dict = parts_to_dict(parts_list)
 
-    return render_template('view.html', parts=parts_dict, title=title)
+    return render_template('view.html', parts=parts_dict, title=title, category=category)
 
 @app.route('/add', methods=['GET', 'POST'])
 @login_required
@@ -272,7 +288,7 @@ def register():
 def logout():
     logout_user()
     flash("Logged out.", "info")
-    return redirect(url_for('login'))  # Redirect to login after logout
+    return redirect(url_for('login'))
 
-
-    
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0')
