@@ -7,9 +7,9 @@ import os
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'fallback-secret-for-local')  # Set real secret in Render env vars
+app.secret_key = os.environ.get('SECRET_KEY', 'fallback-secret-for-local')
 
-# Render persistent disk path - matches your mount path exactly
+# Render persistent disk path - matches your mount path
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////opt/render/project/src/data/inventory.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -90,7 +90,8 @@ def index():
     user_month = defaultdict(int)
     user_all = defaultdict(int)
 
-    for pn, part in Part.query.all():
+    # FIXED: No unpacking - loop over Part objects directly
+    for part in Part.query.all():
         for entry in part.usage_history or []:
             used = entry['quantity_used']
             user = entry.get('user', 'Unknown')
@@ -325,4 +326,4 @@ def logout():
     flash("Logged out.", "info")
     return redirect(url_for('login'))
 
-# No if __name__ == '__main__' block - Render uses Gunicorn
+# No if __name__ == '__main__' - Render uses Gunicorn
