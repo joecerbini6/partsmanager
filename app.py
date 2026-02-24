@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'fallback-secret-for-local')  # Set real secret in Render env vars
 
-# Render persistent disk path - data saves forever on your mounted disk
+# Render persistent disk path - matches your mount path exactly
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////opt/render/project/src/data/inventory.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -41,7 +41,6 @@ def load_user(user_id):
 with app.app_context():
     db.create_all()
 
-    # Pre-seed users if none exist (change passwords after first login!)
     if User.query.count() == 0:
         users = [
             User(username='joe', password=generate_password_hash('password123')),
@@ -51,7 +50,6 @@ with app.app_context():
         db.session.bulk_save_objects(users)
         db.session.commit()
 
-    # Starter parts if inventory is empty
     if Part.query.count() == 0:
         starter = [
             Part(pn="SCR-001", name="Hex Screw", quantity=120, price=0.15,
@@ -80,7 +78,7 @@ def parts_to_dict(parts):
 @login_required
 def index():
     now = datetime.now()
-    week_start = now - timedelta(days=now.weekday())  # Monday
+    week_start = now - timedelta(days=now.weekday())
     month_start = now.replace(day=1)
 
     def usage_in_period(history, start):
@@ -327,5 +325,4 @@ def logout():
     flash("Logged out.", "info")
     return redirect(url_for('login'))
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+# No if __name__ == '__main__' block - Render uses Gunicorn
